@@ -29,6 +29,23 @@ public class Assignment {
 	private Date dueDate;
 
 	
+	public Assignment(Course course, String name, Date dueDate) {
+		super();
+		this.course = course;
+		this.assignmentGrades = new java.util.ArrayList<AssignmentGrade>();
+		this.name = name;
+		this.dueDate = dueDate;
+	}
+	
+	public Assignment() {
+		super();
+		this.id = -1;
+		this.course = null;
+		this.assignmentGrades = new java.util.ArrayList<AssignmentGrade>();
+		this.name = null;
+		this.dueDate = null;
+	}
+	
 	public int getId() {
 		return id;
 	}

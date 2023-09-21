@@ -57,6 +57,27 @@ public class Course {
 	}
 	
 	
+	public Course() {
+		this.course_id = -1;
+		this.title = null;
+		this.instructor = null;
+		this.year = -1;
+		this.semester = null;
+		this.assignments = new java.util.ArrayList<Assignment>();
+		this.enrollments = new java.util.ArrayList<Enrollment>();
+	}
+	
+	public Course(int course_id, String title, String instructor, int year, String semester) {
+		super();
+		this.course_id = course_id;
+		this.title = title;
+		this.instructor = instructor;
+		this.year = year;
+		this.semester = semester;
+		this.assignments = new java.util.ArrayList<Assignment>();
+		this.enrollments = new java.util.ArrayList<Enrollment>();
+	}
+	
 	public List<Enrollment> getEnrollments() {
 		return enrollments;
 	}
@@ -70,6 +91,7 @@ public class Course {
 	public void setAssignments(List<Assignment> assignments) {
 		this.assignments = assignments;
 	}
+	
 	@Override
 	public String toString() {
 		return "Course [course_id=" + course_id + ", title=" + title + ", instructor=" + instructor + ", year=" + year

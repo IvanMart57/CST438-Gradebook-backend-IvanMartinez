@@ -1,21 +1,40 @@
 package com.cst438;
 
+import static org.hamcrest.CoreMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.Calendar;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import com.cst438.domain.Assignment;
+import com.cst438.domain.AssignmentDTO;
+import com.cst438.domain.AssignmentRepository;
 import com.cst438.domain.AssignmentGrade;
 import com.cst438.domain.AssignmentGradeRepository;
+import com.cst438.domain.Course;
+import com.cst438.domain.CourseRepository;
+import com.cst438.domain.Enrollment;
+import com.cst438.domain.EnrollmentRepository;
 import com.cst438.domain.GradeDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+
 
 /* 
  * Example of using Junit 
@@ -32,7 +51,23 @@ public class JunitTestGradebook {
 	
 	@Autowired
 	private AssignmentGradeRepository assignmentGradeRepository;
+	@Autowired
+	private CourseRepository courseRepository;
+	
+	@Autowired
+	private EnrollmentRepository enrollmentRepository;
+	@Autowired
+	private AssignmentRepository assignmentRepository;
 
+	
+	
+	static final String URL = "http://localhost:8081";
+	public static final int TEST_COURSE_ID = 40442;
+	public static final String TEST_STUDENT_EMAIL = "test@csumb.edu";
+	public static final String TEST_STUDENT_NAME = "test";
+	public static final String TEST_INSTRUCTOR_EMAIL = "dwisneski@csumb.edu";
+	public static final int TEST_YEAR = 2023;
+	public static final String TEST_SEMESTER = "Fall";
 	/* 
 	 * Enter a new grade for student test4@csumb.edu for assignment id=1
 	 */
@@ -133,5 +168,64 @@ public class JunitTestGradebook {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@Test
+	public void addAssignment() throws Exception {
+		MockHttpServletResponse response;
+		
+		   Course course = new Course(31045, "test course", "test instructor", 3005, "Fall");
+	       Assignment assignment = new Assignment(course, "Test assignment", new java.sql.Date(Calendar.getInstance().getTimeInMillis()));
+		   
+	       AssignmentDTO result = new AssignmentDTO(assignment.getId(), assignment.getName(), assignment.getDueDate().toString(),assignment.getCourse().getTitle(), assignment.getCourse().getCourse_id()); 
+			response = mvc
+					.perform(MockMvcRequestBuilders.post("/assignments/new").accept(MediaType.APPLICATION_JSON)
+							.param("id", "31045").param("name", assignment.getName())
+							.param("due", assignment.getDueDate().toString())
+							.content(asJsonString(result)).contentType(MediaType.APPLICATION_JSON))
+					.andReturn().getResponse();
+			System.out.println(asJsonString(result));
+			assertEquals(200, response.getStatus());
+			
+	}
+
+
+ @Test public void updateAssignment() throws Exception {
+	 MockHttpServletResponse response;
+	 
+	 response = mvc.perform(MockMvcRequestBuilders.put("/assignments/update/").accept(MediaType.APPLICATION_JSON)
+			 	.param("id", "2").param("name", "new name")
+				.param("date", "1990-01-01"))
+				.andReturn().getResponse();
+	 
+//		System.out.println(asJsonString(result));
+		assertEquals(200, response.getStatus());
+ }
+ 
+ @Test public void deleteAssignment() throws Exception {
+	 
+	 MockHttpServletResponse response;
+		
+	   Course course = new Course(31045, "test course", "test instructor", 3005, "Fall");
+     Assignment assignment = new Assignment(course, "Test assignment", new java.sql.Date(Calendar.getInstance().getTimeInMillis()));
+	   
+     AssignmentDTO result = new AssignmentDTO(assignment.getId(), assignment.getName(), assignment.getDueDate().toString(),assignment.getCourse().getTitle(), assignment.getCourse().getCourse_id()); 
+		response = mvc
+				.perform(MockMvcRequestBuilders.post("/assignments/new").accept(MediaType.APPLICATION_JSON)
+						.param("id", "31045").param("name", assignment.getName())
+						.param("due", assignment.getDueDate().toString())
+						.content(asJsonString(result)).contentType(MediaType.APPLICATION_JSON))
+				.andReturn().getResponse();
+//		System.out.println(asJsonString(result));
+		assertEquals(200, response.getStatus());
+		
+		response = mvc
+				.perform(MockMvcRequestBuilders.delete("/assignment/delete/3").accept(MediaType.APPLICATION_JSON)
+						.content(asJsonString(result)).contentType(MediaType.APPLICATION_JSON))
+				.andReturn().getResponse();
+		
+		assertEquals(200, response.getStatus());
+		
+ }
+
 
 }
