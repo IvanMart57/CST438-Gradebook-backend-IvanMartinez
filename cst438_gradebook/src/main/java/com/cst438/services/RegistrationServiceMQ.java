@@ -1,6 +1,8 @@
 package com.cst438.services;
 
 
+import java.util.Optional;
+
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -47,6 +49,16 @@ public class RegistrationServiceMQ implements RegistrationService {
 		System.out.println("Gradebook has received: "+message);
 
 		//TODO  deserialize message to EnrollmentDTO and update database
+				EnrollmentDTO enrollmentDTO = fromJsonString(message, EnrollmentDTO.class);
+//				UserLevel userLevel = doRequest(mr);
+				Enrollment enrollment = new Enrollment();
+				Optional<Course> course = courseRepository.findById(enrollmentDTO.courseId());
+				enrollment.setCourse(course.get());
+				enrollment.setStudentName(enrollmentDTO.studentName());
+				enrollment.setStudentEmail(enrollmentDTO.studentEmail());
+				enrollment.setId(enrollmentDTO.id());
+				
+				enrollmentRepository.save(enrollment);
 	}
 
 	/*
@@ -58,7 +70,7 @@ public class RegistrationServiceMQ implements RegistrationService {
 		System.out.println("Start sendFinalGrades "+course_id);
 
 		//TODO convert grades to JSON string and send to registration service
-		
+		rabbitTemplate.convertAndSend(registrationQueue.getName(), asJsonString(grades));
 	}
 	
 	private static String asJsonString(final Object obj) {
