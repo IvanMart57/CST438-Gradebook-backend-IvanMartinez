@@ -1,6 +1,7 @@
 package com.cst438.controllers;
 
 import java.io.Console;
+import java.security.Principal;
 import java.sql.Date;
 import java.util.List;
 
@@ -25,6 +26,8 @@ import com.cst438.domain.AssignmentDTO;
 import com.cst438.domain.AssignmentRepository;
 import com.cst438.domain.Course;
 import com.cst438.domain.CourseRepository;
+import com.cst438.domain.User;
+import com.cst438.domain.UserRepository;
 
 @RestController
 @CrossOrigin 
@@ -36,12 +39,16 @@ public class AssignmentController {
 	@Autowired
 	CourseRepository courseRepository;
 	
+	@Autowired
+	UserRepository userRepository;
+	
 	@GetMapping("/assignment")
-	public AssignmentDTO[] getAllAssignmentsForInstructor() {
+	public AssignmentDTO[] getAllAssignmentsForInstructor(Principal principal) {
 		// get all assignments for this instructor
 		System.out.println("HI!");
-		String instructorEmail = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
-		List<Assignment> assignments = assignmentRepository.findByEmail(instructorEmail);
+		String userString = principal.getName();
+		User currentUser = userRepository.findByAlias(userString);
+		List<Assignment> assignments = assignmentRepository.findByEmail(currentUser.getEmail());
 		AssignmentDTO[] result = new AssignmentDTO[assignments.size()];
 		for (int i=0; i<assignments.size(); i++) {
 			Assignment as = assignments.get(i);
@@ -76,11 +83,12 @@ public class AssignmentController {
 	
 	@PostMapping("/assignment/new")
 	@Transactional
-	public void createAssignment(@RequestParam("id") int courseId, @RequestParam("name") String name, @RequestParam("due") String date) {
-		String instructorEmail = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+	public void createAssignment(@RequestParam("id") int courseId, @RequestParam("name") String name, @RequestParam("due") String date, Principal principal) {
+		String userString = principal.getName();
+		User currentUser = userRepository.findByAlias(userString);  // user name (should be instructor's email) 
 		Course course = courseRepository.findById(courseId).orElse(null);
 		
-		if (!course.getInstructor().equals(instructorEmail)) {
+		if (!course.getInstructor().equals(currentUser.getEmail())) {
 			throw new ResponseStatusException( HttpStatus.UNAUTHORIZED, "Not Authorized. " );
 		}
 		if(course != null) {
@@ -98,10 +106,11 @@ public class AssignmentController {
 	
 	@PutMapping("/assignment/update/")
 	@Transactional
-	public void updateAssignmentName(@RequestParam("id") Integer assignmentId, @RequestParam("name") String name, @RequestParam("date") String date) {
+	public void updateAssignmentName(@RequestParam("id") Integer assignmentId, @RequestParam("name") String name, @RequestParam("date") String date, Principal principal) {
 		Assignment assignment = assignmentRepository.findById(assignmentId).orElse(null); 
-		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
-		if (!assignment.getCourse().getInstructor().equals(email)) {
+		String userString = principal.getName();
+		User currentUser = userRepository.findByAlias(userString); // user name (should be instructor's email) 
+		if (!assignment.getCourse().getInstructor().equals(currentUser.getEmail())) {
 			throw new ResponseStatusException( HttpStatus.UNAUTHORIZED, "Not Authorized. " );
 		}
 		if(assignment != null) {
